@@ -157,7 +157,7 @@
 
         this.range_ref.addEventListener('input', debounce((evt) => {
           DISTANCE = evt.target.value
-          this.set_action(this.selected_color)
+          this.set_action(this.destiny_color || this.selected_color)
         }), 250)
 
         // this.picker.show()
@@ -176,6 +176,7 @@
         };
         
         this.selected_color = null
+        this.destiny_color = null
 
         this.load_image((img, image) => {
           const ch = this.canvas.height = this.imgW * img.height / img.width;
@@ -225,6 +226,7 @@
           status.value = ACTIONS.INITIAL_IS_ENABLED
           this.selected_color = color
         }else if(status.value == ACTIONS.TARGET_IS_ENABLED){
+          this.destiny_color = color
           this.replaceColor(this.selected_color, color)
         }
       }
@@ -238,6 +240,7 @@
             ctx.drawImage(img, 0, 0, this.cw, ch);
             const imgData = ctx.getImageData(0, 0, this.cw, ch);
             ctx.putImageData(imgData, 0, 0);
+            this.destiny_color = null
         })
       }
 
@@ -328,7 +331,7 @@
           const gDiff = color1.g - color2.g;
           const bDiff = color1.b - color2.b;
           //return Math.sqrt((rDiff * rDiff) + (gDiff * gDiff) + (bDiff * bDiff));
-          const weightedDiff = Math.sqrt((rDiff * rDiff) * 0.299 + (gDiff * gDiff) * 0.587 + (bDiff * bDiff) * 0.114);
+          return Math.sqrt((rDiff * rDiff) * 0.299 + (gDiff * gDiff) * 0.587 + (bDiff * bDiff) * 0.114);
       }
 
       rgbaToRgb(rgba) {
