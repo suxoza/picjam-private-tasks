@@ -1,0 +1,4 @@
+lama-cleaner
+../*
+.venv
+.env
