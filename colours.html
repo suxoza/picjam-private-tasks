@@ -50,15 +50,18 @@
 
             <div :class="status === ACTIONS.IS_NOT_SELECTED?'hidden':''" class="w-full justify-center flex items-center flex flex-col">
               <div v-show="status === ACTIONS.TARGET_IS_ENABLED" class="my-5">
-                <input ref="range_ref" type="range" class="w-64" value="50" min="1" max="100">
+                <input v-model="distance" @input="on_slicer_change" type="range" class="w-64" value="50" min="1" max="100">
               </div>
               <div ref="picker_ref" class=" viewColor bg-[#d39e8bff] rounded-full color-red-500 -ml-48"></div>
             </div>
         </div>
         
         <div class="relative w-1/2 flex items-center justify-start">
-          <img ref="image_ref" style="display: none; width: 200px;" src="http://localhost:8000/canvas_image.jpg" alt="">
+          <!-- <img ref="image_ref" style="display: none; width: 200px;" src="http://localhost:8000/canvas_image.jpg" alt=""> -->
           <!-- <img ref="image_ref" style="display: none; width: 200px;" src="http://localhost:8000/woman.png" alt=""> -->
+          <img ref="image_ref" style="display: none; width: 200px;" src="http://localhost:8000/images/image1232.png" alt="">
+          <!-- <img ref="image_ref" style="display: none; width: 200px;" src="http://localhost:8000/images/picjam_-_green_turtleneck_sweater_47.png" alt=""> -->
+          <!-- <img ref="image_ref" style="display: none; width: 200px;" src="http://localhost:8000/images/picjam_-_red_sweater_23.png" alt=""/> -->
           <canvas ref="canvas_ref"></canvas>
         </div>
       </div>
@@ -68,9 +71,9 @@
       </div>
   </div>
   <script type="module">
-    import { createApp, ref, onMounted } from 'vue'
+    import { createApp, ref, onMounted, watchEffect } from 'vue'
 
-    var DISTANCE = 100 // this value is responsible for distance
+    
     
     const ACTIONS = {
         IS_NOT_SELECTED: 1,
@@ -109,11 +112,11 @@
       }
 
 
-      constructor(canvas, viewColor, img, picker, target_circle, range_ref) {
+      constructor(canvas, viewColor, img, picker, target_circle, distance) {
         this.originalImage = img
         this.viewColor = viewColor
         this.canvas = canvas
-        this.range_ref = range_ref
+        this.distance = distance
         /*
         this.picker = new Picker({
           parent: picker,
@@ -153,12 +156,6 @@
         }, 100)).on('swatchselect', (color) => {
           console.log('swatch select had been changed...', color)
         });
-
-
-        this.range_ref.addEventListener('input', debounce((evt) => {
-          DISTANCE = evt.target.value
-          this.set_action(this.destiny_color || this.selected_color)
-        }), 250)
 
         // this.picker.show()
 
@@ -200,6 +197,7 @@
         this.canvas.addEventListener('click', (e) => {
 
           const { thisRGB, thisRGBRy } = this.get_colors(e)
+          console.log('colors: ', thisRGB, thisRGBRy)
           
           this.targeted_circle().style.backgroundColor = thisRGB;
 
@@ -211,8 +209,9 @@
         })
       }
 
-      set_from_range(evt) {
-        console.log(evt.target.value)
+      on_slicer_change() {
+          console.log('debounce changes here...')
+          this.set_action(this.destiny_color || this.selected_color)
       }
 
       targeted_circle() {
@@ -236,7 +235,7 @@
             const canvas_2 = document.getElementById('canvas_2')
             const ctx = canvas_2.getContext("2d");
             const ch = this.canvas.height = this.imgW * img.height / img.width;
-            DISTANCE = 50
+            this.distance.value = 50
             ctx.drawImage(img, 0, 0, this.cw, ch);
             const imgData = ctx.getImageData(0, 0, this.cw, ch);
             ctx.putImageData(imgData, 0, 0);
@@ -330,8 +329,7 @@
           const rDiff = color1.r - color2.r;
           const gDiff = color1.g - color2.g;
           const bDiff = color1.b - color2.b;
-          //return Math.sqrt((rDiff * rDiff) + (gDiff * gDiff) + (bDiff * bDiff));
-          return Math.sqrt((rDiff * rDiff) * 0.299 + (gDiff * gDiff) * 0.587 + (bDiff * bDiff) * 0.114);
+          return Math.sqrt((rDiff * rDiff) + (gDiff * gDiff) + (bDiff * bDiff));
       }
 
       rgbaToRgb(rgba) {
@@ -353,8 +351,7 @@
               const ch = this.canvas.height = this.imgW * img.height / img.width;
               ctx.drawImage(img, 0, 0, this.cw, ch);
               const imgData = ctx.getImageData(0, 0, this.cw, ch);
-              console.log(imgData)
-
+              
 
               const oldColor = this.parseRGB(targetColorString);
               const newColor = this.parseRGB(replacementColorString)
@@ -368,15 +365,15 @@
                   b: imgData.data[i + 2]
                 };
                 const dist = this.colorDistance(oldColor, pixelColor);
-                if(i < 10 && dist < 30){
-                  console.log(pixelColor)
-                  console.log(oldColor)
-                  console.log(newColor)
-                  console.log(dist)
-                  console.log('---------')
-                }
+                // if(i < 10 && dist < 30){
+                //   console.log(pixelColor)
+                //   console.log(oldColor)
+                //   console.log(newColor)
+                //   console.log(dist)
+                //   console.log('---------')
+                // }
                 // if (pixelColor === oldColor) {
-                if (dist < DISTANCE) {
+                if (dist < this.distance.value) {
                   // console.log(pixelColor+' -> '+newColor)
                   imgData.data[i] = newColor.r;
                   imgData.data[i + 1] = newColor.g;
@@ -400,19 +397,19 @@
         const canvas_ref = ref(null)
         const image_ref = ref(null)
         const viewcolor_ref = ref(null)
-        const range_ref = ref(null)
+        const distance = ref(30) // this value is responsible for distance
 
         let imageColorPicker;
         onMounted(() => {
-          
           imageColorPicker = new ImageColorPicker(
             canvas_ref.value, 
             viewcolor_ref.value, 
             image_ref.value,
             picker_ref.value,
             target_circle.value,
-            range_ref.value
+            distance
           );
+          
         })
         
       
@@ -422,7 +419,7 @@
           viewcolor_ref,
           picker_ref,
           target_circle,
-          range_ref,
+          distance,
 
           ACTIONS,
           status,
@@ -432,7 +429,8 @@
             if(value == 1)n
               imageColorPicker.reset()
             status.value = value
-          }
+          },
+          on_slicer_change: debounce(() => imageColorPicker.on_slicer_change(), 250)
         }
       }
     }).mount('#app')
