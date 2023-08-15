@@ -1,0 +1,9 @@
+
+
+--yellow-accent: #ffcc00;
+--yellow-accent-light: #ffcc0055;
+
+server:
+  cd /home/suxoza/picjam/picjam-private-tasks/lama-cleaner && python3 main.py --host localhost --port 8181 --device cpu
+client:
+ cd /home/suxoza/picjam/picjam-private-tasks/lama-cleaner/lama_cleaner/app && pnpm start
