@@ -34,7 +34,7 @@
           <!-- <img ref="image_ref" style="display: none; width: 200px;" src="http://localhost:5173/images/image1232.png" alt=""> -->
           <!-- <img ref="image_ref" style="display: none; width: 200px;" src="http://localhost:5173/images/picjam_-_green_turtleneck_sweater_47.png" alt=""> -->
           <img ref="image_ref" style="display: none; width: 200px;" src="http://localhost:5173/images/picjam_-_red_sweater_23.png" alt=""/>
-          <canvas ref="canvas_ref"></canvas>
+          <canvas style="cursor: none;" ref="canvas_ref"></canvas>
         </div>
       </div>
   
