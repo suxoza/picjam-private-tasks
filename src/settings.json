@@ -1,0 +1,128 @@
+{
+    "show": false,
+    "showCroper": false,
+    "downloadMask": false,
+    "graduallyInpainting": true,
+    "runInpaintingManually": false,
+    "model": "lama",
+    "hdSettings": {
+        "lama": {
+            "hdStrategy": "Crop",
+            "hdStrategyResizeLimit": 2048,
+            "hdStrategyCropTrigerSize": 800,
+            "hdStrategyCropMargin": 196,
+            "enabled": true
+        },
+        "ldm": {
+            "hdStrategy": "Crop",
+            "hdStrategyResizeLimit": 1080,
+            "hdStrategyCropTrigerSize": 1080,
+            "hdStrategyCropMargin": 128,
+            "enabled": true
+        },
+        "zits": {
+            "hdStrategy": "Crop",
+            "hdStrategyResizeLimit": 1024,
+            "hdStrategyCropTrigerSize": 1024,
+            "hdStrategyCropMargin": 128,
+            "enabled": true
+        },
+        "mat": {
+            "hdStrategy": "Crop",
+            "hdStrategyResizeLimit": 1024,
+            "hdStrategyCropTrigerSize": 512,
+            "hdStrategyCropMargin": 128,
+            "enabled": true
+        },
+        "fcf": {
+            "hdStrategy": "Crop",
+            "hdStrategyResizeLimit": 512,
+            "hdStrategyCropTrigerSize": 512,
+            "hdStrategyCropMargin": 128,
+            "enabled": false
+        },
+        "sd1.5": {
+            "hdStrategy": "Original",
+            "hdStrategyResizeLimit": 768,
+            "hdStrategyCropTrigerSize": 512,
+            "hdStrategyCropMargin": 128,
+            "enabled": false
+        },
+        "anything4": {
+            "hdStrategy": "Original",
+            "hdStrategyResizeLimit": 768,
+            "hdStrategyCropTrigerSize": 512,
+            "hdStrategyCropMargin": 128,
+            "enabled": false
+        },
+        "realisticVision1.4": {
+            "hdStrategy": "Original",
+            "hdStrategyResizeLimit": 768,
+            "hdStrategyCropTrigerSize": 512,
+            "hdStrategyCropMargin": 128,
+            "enabled": false
+        },
+        "sd2": {
+            "hdStrategy": "Original",
+            "hdStrategyResizeLimit": 768,
+            "hdStrategyCropTrigerSize": 512,
+            "hdStrategyCropMargin": 128,
+            "enabled": false
+        },
+        "paint_by_example": {
+            "hdStrategy": "Original",
+            "hdStrategyResizeLimit": 768,
+            "hdStrategyCropTrigerSize": 512,
+            "hdStrategyCropMargin": 128,
+            "enabled": false
+        },
+        "instruct_pix2pix": {
+            "hdStrategy": "Original",
+            "hdStrategyResizeLimit": 768,
+            "hdStrategyCropTrigerSize": 512,
+            "hdStrategyCropMargin": 128,
+            "enabled": false
+        },
+        "manga": {
+            "hdStrategy": "Crop",
+            "hdStrategyResizeLimit": 1280,
+            "hdStrategyCropTrigerSize": 1024,
+            "hdStrategyCropMargin": 196,
+            "enabled": true
+        },
+        "cv2": {
+            "hdStrategy": "Resize",
+            "hdStrategyResizeLimit": 1080,
+            "hdStrategyCropTrigerSize": 512,
+            "hdStrategyCropMargin": 128,
+            "enabled": true
+        }
+    },
+    "ldmSteps": 25,
+    "ldmSampler": "plms",
+    "zitsWireframe": true,
+    "sdMaskBlur": 5,
+    "sdMode": "inpainting",
+    "sdStrength": 0.75,
+    "sdSteps": 50,
+    "sdGuidanceScale": 7.5,
+    "sdSampler": "uni_pc",
+    "sdSeed": 42,
+    "sdSeedFixed": false,
+    "sdNumSamples": 1,
+    "sdMatchHistograms": false,
+    "sdScale": 100,
+    "cv2Radius": 5,
+    "cv2Flag": "INPAINT_NS",
+    "paintByExampleSteps": 50,
+    "paintByExampleGuidanceScale": 7.5,
+    "paintByExampleSeed": 42,
+    "paintByExampleMaskBlur": 5,
+    "paintByExampleSeedFixed": false,
+    "paintByExampleMatchHistograms": false,
+    "p2pSteps": 50,
+    "p2pImageGuidanceScale": 1.5,
+    "p2pGuidanceScale": 7.5,
+    "controlnetConditioningScale": 0.4,
+    "controlnetMethod": "canny"
+}

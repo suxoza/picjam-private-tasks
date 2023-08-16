@@ -1,8 +1,12 @@
 <template>
+  <div v-if="isProcessing" class="absolute w-full h-full bg-gray-300 opacity-75 inset-0 z-30 flex items-center justify-center">
+    <Loading />
+  </div>
   <div class="flex justify-center pt-32 flex-col items-center gap-y-5">
     {{  showBrush  }}
     {{  isPainting  }}
     {{  changeBrushSizeByMouseInit  }}
+    
     <div class="relative w-1/2 flex items-center justify-center" style="height: 30rem;">
 
 
@@ -11,13 +15,13 @@
           ref="image_ref"
           src="http://localhost:5173/images/picjam_-_red_sweater_23.png"
           alt=""
-          width="600"
-          height="700"
+          width="512"
+          height="512"
           style="display: none;"
           @load="onImageLoad"
         />
         <canvas
-          width="500"
+          width="512"
           ref="canvas_ref"
           class="absolute top-0"
           style="transition: clip-path 300ms cubic-bezier(0.4, 0, 0.2, 1); inset(0 30% 0 0); cursor: none;"
@@ -29,7 +33,7 @@
           @mouseleave="onMouseleave"
         ></canvas>
 
-        <div v-if="showBrush"
+        <div v-if="showBrush && !isProcessing"
             class="brush-shape "
             :style="dynamicStyles"
           >
@@ -52,6 +56,11 @@
 </template>
 
 <script setup>
+import Loading from './loading.vue'
+import settings from '../settings.json'
+import { getImageFileFromUrl, ImageColorPicker, inpaint, loadImage } from '../helpers'
+
+
 import { ref, computed } from 'vue';
 
 const canvas_ref = ref(null);
@@ -60,39 +69,10 @@ const image_ref = ref(null);
 const showBrush = ref(false)
 const isPainting = ref(false)
 const isProcessing = ref(false)
-
-const TOOLBAR_SIZE = 200
-const MIN_BRUSH_SIZE = 10
-const MAX_BRUSH_SIZE = 200
 const BRUSH_COLOR = '#ffcc00bb'
 
 let drawingPoints = [];
 
-class ImageColorPicker {
-  constructor(canvas, img) {
-    this.originalImage = img;
-    this.canvas = canvas;
-    this.ctx = this.canvas.getContext('2d');
-    this.imgW = img.width;
-    this.imgH = img.height;
-    this.ctx.drawImage(this.originalImage, 0, 0, this.imgW, this.imgH);
-    this.imgData = this.ctx.getImageData(0, 0, this.imgW, this.imgH);
-  }
-
-  drawPath(points) {
-    this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
-    this.ctx.drawImage(this.originalImage, 0, 0, this.imgW, this.imgH);
-    
-    // this.ctx.fillStyle = 'rgba(255, 204, 0, 0.5)';
-    for (const point of points) {
-      if(drawingPoints.includes({x: point.x, y: point.y}))continue
-      this.ctx.beginPath();
-      this.ctx.arc(point.x, point.y, circle_size.value, 0, Math.PI * 32);
-      this.ctx.fill();
-      this.ctx.closePath();
-    }
-  }
-}
 
 let imageColorPicker, canvas, image;
 const onImageLoad = () => {
@@ -123,7 +103,6 @@ function drawLines(ctx, lines, color = BRUSH_COLOR) {
     ctx.stroke()
   })
 }
-
 
 function mouseXY(evt) {
   return { x: evt.offsetX, y: evt.offsetY };
@@ -171,11 +150,47 @@ const onMouseDown = (evt) => {
   console.log(drawingPoints)
 }
 
-const onMouseUp = (evt) => {
+const onMouseUp = async (evt) => {
   isPainting.value = false
   console.log('mouseUp')
-}
+  const imageUrl  = image_ref.value.src
+  const file = await getImageFileFromUrl(imageUrl)
+  const croperRect = {x: 194, y: 194, width: 512, height: 512}
+  const promptVal = ""
+  const negativePromptVal = ""
+  const seedVal = -1
+  const useCustomMask = ""
+  const paintByExampleImage = ""
+  console.log('settings = ')
+  console.log(settings.hdSettings[settings.model])
 
+
+  isProcessing.value = true
+  const res = await inpaint(
+    file, // targetFile,
+    settings, // settings,
+    croperRect, // croperRect,
+    promptVal,
+    negativePromptVal,
+    seedVal,
+    canvas.toDataURL(),// useCustomMask ? undefined : maskCanvas.toDataURL(),
+    useCustomMask,// useCustomMask ? customMask : undefined,
+    paintByExampleImage, // paintByExampleImage
+  )
+  isProcessing.value = false
+
+  const { blob, seed } = res
+  if (seed) {
+    setSeed(parseInt(seed, 10))
+  }
+  const newRender = new Image()
+  await loadImage(newRender, blob)
+
+
+  new ImageColorPicker(canvas, newRender)
+  drawingPoints = []
+
+}
 
 
 </script>
