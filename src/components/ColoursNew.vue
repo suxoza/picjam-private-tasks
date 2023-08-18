@@ -21,27 +21,34 @@
   
             <div :class="status === ACTIONS.IS_NOT_SELECTED?'hidden':''" class="w-full justify-center flex items-center flex flex-col">
               <div v-show="status === ACTIONS.TARGET_IS_ENABLED" class="my-5">
-                <!-- <input v-model="distance" @input="on_slicer_change" type="range" class="w-64" value="50" min="1" max="100"> -->
-                <input v-model="distance" @input="on_slicer_change" type="range" class="w-64" min="1" max="100">
+                <div class="flex flex-col my-2">
+                  <span>Color range</span>
+                  <input v-model="color_range" @input="on_slicer_change" type="range" class="w-64" min="1" max="100">
+                </div>
+                <div class="flex flex-col my-2">
+                  <span>Opacity</span>
+                  <input v-model="opacity" @input="on_slicer_change" type="range" class="w-64" min="1" max="10">
+                </div>
               </div>
               <div ref="picker_ref" class=" viewColor bg-[#d39e8bff] rounded-full color-red-500 -ml-48"></div>
             </div>
         </div>
         
         <div class="relative w-1/2 flex items-center justify-start">
-          <!-- <img ref="image_ref" style="display: none; width: 200px;" src="http://localhost:5173/canvas_image.jpg" alt=""> -->
-          <!-- <img ref="image_ref" style="display: none; width: 200px;" src="http://localhost:5173/woman.png" alt=""> -->
-          <!-- <img ref="image_ref" style="display: none; width: 200px;" src="http://localhost:5173/images/image1232.png" alt=""> -->
-          <img ref="image_ref" style="display: none; width: 200px;" src="http://localhost:5173/images/picjam_-_green_turtleneck_sweater_47.png" alt="">
+          <!-- <img ref="image_ref" style="display: none;" src="http://localhost:5173/canvas_image.jpg" alt=""> -->
+          <!-- <img ref="image_ref" style="display: none;" src="http://localhost:5173/images/woman.png" alt=""> -->
+          <img ref="image_ref" style="display: none; max-width: 300px;" src="http://localhost:5173/images/image1232.png" alt="">
+          <!-- <img ref="image_ref" style="display: none;" src="http://localhost:5173/images/picjam_-_green_turtleneck_sweater_47.png" alt=""> -->
           <!-- <img ref="image_ref" style="display: none; width: 200px;" src="http://localhost:5173/images/picjam_-_red_sweater_23.png" alt=""/> -->
           <canvas style="cursor: none;" ref="canvas_ref"></canvas>
         </div>
       </div>
   
-      <div class="w-full flex items-center justify-around mt-2 ml-24">
-        <canvas width="700" height="700" class="w-[50%] h-full" id="canvas_0"></canvas>
-        <canvas width="700" height="700" class="w-[50%] h-full" id="canvas_1"></canvas>
-        <canvas width="700" height="700" class="w-[50%] h-full" id="canvas_2"></canvas>
+      <div class="w-full flex flex-wrap items-center justify-center mt-2 mx-10 mb-20">
+        <canvas class="" id="canvas_0"></canvas>
+        <canvas class="" id="canvas_1"></canvas>
+        <canvas class="" id="canvas_2"></canvas>
+        <canvas class="" id="canvas_3"></canvas>
       </div>
 </template>
 
@@ -62,10 +69,14 @@
       rgb2hsv0,
       rgb2hsv1,
       rgb2hsv2,
+      rgb2hsv3,
       toRgb,
       toRgb2,
       rgbaToRgb,
-      hslToRgb
+      hslToRgb,
+      hslToRgb2, 
+      hsvToRgb, 
+      rgbToHsv
     } from '../colourHelpers'
     
     const ACTIONS = {
@@ -94,6 +105,8 @@
             
 
             img.onload = () => callback(img, image)
+
+            
             
           };
           fetch(image.src)
@@ -104,12 +117,35 @@
         });
       }
 
+      first_load(){
+        // const from_color = {h: 215, s: 61, v: 47} // rgba(47, 108, 193, 1)
+        // const to_color = {h:353, s:90, v:49} // rgba(237, 12, 39, 1)
 
-      constructor(canvas, viewColor, img, picker, target_circle, distance) {
+        const from_color = {h: 215, s: 75.6, v: 75.7} // rgba(47, 108, 193, 1)
+        const to_color = {h:353, s:94.9, v:92.9} // rgba(237, 12, 39, 1)
+
+
+        ///////----------------
+
+        // const from_color = {h: 128, s: 33, v: 53} // rgba(95, 174, 106, 1)
+        // const to_color = {h:353, s:89, v:48} // rgba(234, 13, 37, 1)
+
+        // const from_color = {h: 128, s: 45, v: 68} // rgba(95, 174, 106, 1) // hsl(128, 33%, 53%) // hsv(128, 45%, 68%)
+        // const to_color = {h:353, s:94, v:92} // rgba(234, 13, 37, 1) // hsl(353, 89%, 48%) // hsv(353, 94%, 92%)  
+
+
+        this.color_range.value = 10
+        this.opacity.value = 70
+        this.replaceColor(from_color, to_color)
+      }
+
+
+      constructor(canvas, viewColor, img, picker, target_circle, color_range, opacity) {
         this.originalImage = img
         this.viewColor = viewColor
         this.canvas = canvas
-        this.distance = distance
+        this.color_range = color_range
+        this.opacity = opacity
 
         this.picker = new Pickr({
               el: picker,
@@ -129,10 +165,10 @@
               },
         }).on('hide', instance => {
           // instance.show()
-        }).on('change', debounce((color, source, instance) => {
-          this.targeted_circle().style.backgroundColor = rgbaToRgb(color.toRGBA().toString())
+        }).on('change', (color, source, instance) => {
+          // this.targeted_circle().style.backgroundColor = rgbaToRgb(color.toRGBA().toString())
           this.set_action(color)
-        }, 100)).on('swatchselect', (color) => {
+        }).on('swatchselect', (color) => {
           console.log('swatch select had been changed...', color)
         });
 
@@ -162,13 +198,18 @@
           console.log(this.imgData)
           this.pixels = this.imgData.data;
           this.animate(image)
+          
+
+          this.color_range.value = 10
+          this.first_load()
+
         })
 
         this.canvas.addEventListener("mousemove", (e) => {
           if([ACTIONS.IS_NOT_SELECTED].includes(status.value))return
           const { thisRGB, thisRGBRy, hsv } = this.get_colors(e)
 
-          this.targeted_circle().style.backgroundColor = thisRGB;
+          // this.targeted_circle().style.backgroundColor = thisRGB;
 
         }, false);
 
@@ -176,15 +217,14 @@
         this.canvas.addEventListener('click', (e) => {
 
           const { thisRGB, thisRGBRy, hsv } = this.get_colors(e)
-          console.log('colors: ', hsv)
           
-          this.targeted_circle().style.backgroundColor = thisRGB;
+          // this.targeted_circle().style.backgroundColor = thisRGB;
 
           // this.picker.setColour(thisRGB)
           this.picker.setColor(thisRGB)
           this.picker.show()
 
-          this.set_action(hsv)
+          // this.set_action(hsv)
         })
       }
 
@@ -203,7 +243,7 @@
         if(status.value < ACTIONS.TARGET_IS_ENABLED){
           status.value = ACTIONS.INITIAL_IS_ENABLED
           this.selected_color = color
-        }else if(status.value == ACTIONS.TARGET_IS_ENABLED){
+        }else if(status.value >= ACTIONS.TARGET_IS_ENABLED){
           this.destiny_color = color
           console.log('colors =1 ')
           console.log(this.selected_color)
@@ -214,8 +254,10 @@
 
       reset(){
         this.load_image((img, image) => {
-            for (let index = 0; index < 3; index++) {
+            for (let index = 0; index < 4; index++) {
               const canvas_2 = document.getElementById(`canvas_${index}`)
+              canvas_2.width = img.width
+              canvas_2.height = img.height
               const ctx = canvas_2.getContext("2d");
               const ch = this.canvas.height = this.imgW * img.height / img.width;
               ctx.drawImage(img, 0, 0, this.cw, ch);
@@ -223,7 +265,8 @@
               ctx.putImageData(imgData, 0, 0);
             }
 
-            this.distance.value = 40
+            this.color_range.value = 50
+            this.opacity.value = 7
             this.destiny_color = null
         })
       }
@@ -288,26 +331,46 @@
           requestAnimationFrame(this.animate.bind(this, image));
       }
 
+      display_rgb(ry) {
+        return `rgb(${Math.round(ry[0])},${Math.round(ry[1])},${Math.round(ry[2])})`;
+      }
+
       replaceColor(targetColorString, replacementColorString) {
-          const oldHSV = targetColorString
-          const newColor = hslToRgb(replacementColorString)
+          
+          //
+          const first_one = hsvToRgb(targetColorString.h, targetColorString.s, targetColorString.v)
+          const second_one = hsvToRgb(replacementColorString.h, replacementColorString.s, replacementColorString.v)
+          console.log('color1', first_one)
+          console.log(replacementColorString)
+          console.log('color2', second_one)
+          console.log('first color yet = ')
+          console.log('first........')
+          console.log(rgb2hsv0(...first_one))
+          console.log(rgb2hsv0(...second_one))
+          console.log('second........')
+          console.log(rgb2hsv1(...first_one))
+          console.log(rgb2hsv1(...second_one))
+          console.log('third........')
+          console.log(rgb2hsv2(...first_one))
+          console.log(rgb2hsv2(...second_one))
+          console.log('forth........')
+          console.log(rgb2hsv3(...first_one))
+          console.log(rgb2hsv3(...second_one))
 
-          const sleep = (interval = 1000) => new Promise(resolve => setTimeout(() => {
-            resolve()
-          }, interval))
+          
+          this.viewColor.style.backgroundColor = this.display_rgb(first_one)
+          this.target_circle.style.backgroundColor = this.display_rgb(second_one);
+          //
 
-          this.load_image(async (img, image) => {
+          this.load_image((img, image) => {
 
-              for (let index = 1; index < 2; index++) {
-
+              for (let index = 0; index < 4; index++) {
                   const canvas_2 = document.getElementById(`canvas_${index}`)
                   const ctx = canvas_2.getContext("2d");
                   const ch = this.canvas.height = this.imgW * img.height / img.width;
                   ctx.drawImage(img, 0, 0, this.cw, ch);
                   const imgData = ctx.getImageData(0, 0, this.cw, ch);       
                   
-                  let iter = 0
-                  let iter2 = 0
                   for (let i = 0; i < imgData.data.length; i += 4) {
                     const pixelColor = {
                       r: imgData.data[i],
@@ -316,7 +379,18 @@
                     };
                     // const pixelHSV = rgb2hsv(pixelColor.r, pixelColor.g, pixelColor.b);
                     // const pixelHSV = rgb2hsv2(pixelColor.r, pixelColor.g, pixelColor.b);
-                    const pixelHSV = eval(`rgb2hsv${index}`)(pixelColor.r, pixelColor.g, pixelColor.b);
+                    let pixelHSV
+                    switch (index) {
+                      case 0:
+                        pixelHSV = rgb2hsv0(pixelColor.r, pixelColor.g, pixelColor.b);break;
+                      case 1:
+                        pixelHSV = rgb2hsv1(pixelColor.r, pixelColor.g, pixelColor.b);break;
+                      case 2:
+                        // pixelHSV = rgb2hsv2(pixelColor.r, pixelColor.g, pixelColor.b);break;
+                        pixelHSV = rgbToHsv(pixelColor.r, pixelColor.g, pixelColor.b);break;
+                      case 3:
+                        pixelHSV = rgb2hsv3(pixelColor.r, pixelColor.g, pixelColor.b);break;
+                    }
                     // if(iter2 < 10){
                     //   console.log('*********************')
                     //   console.log(pixelHSV)
@@ -324,38 +398,36 @@
                     //   iter2++
                     // }
 
-                    const dist = hsvColorDistance(oldHSV, pixelHSV);
-                    // if(iter < 30 && dist < this.distance.value){
+                    const dist = hsvColorDistance(targetColorString, pixelHSV);
+                    // if(iter < 30 && dist < this.color_range.value){
                     //   console.log(dist)
                     //   console.log('---------')
                     //   iter++
                     // }
                     // if (pixelColor === oldColor) {
-                    if (dist < this.distance.value) {
+                    if (dist < this.color_range.value) {
                       // console.log(pixelColor+' -> '+newColor)
-                      imgData.data[i] = newColor.r;
-                      imgData.data[i + 1] = newColor.g;
-                      imgData.data[i + 2] = newColor.b;
+                      imgData.data[i] = second_one[0];
+                      imgData.data[i + 1] = second_one[1];
+                      imgData.data[i + 2] = second_one[2];
+                      imgData.data[i + 3 ] = (this.opacity.value / 10) * 255;
                     }
                   }
 
                 ctx.putImageData(imgData, 0, 0);
-                console.log('next one')
-                await sleep(300)
+                // console.log('next one')
+                // await sleep(300)
               }
           })
       }
-
-
-  }
-
-  
+  }  
         const picker_ref = ref(null);
         const target_circle = ref(null);
         const canvas_ref = ref(null)
         const image_ref = ref(null)
         const viewcolor_ref = ref(null)
-        const distance = ref(50) // this value is responsible for distance
+        const color_range = ref(50) // this value is responsible for color range
+        const opacity = ref(7) // this value is responsible for opacity
 
         let imageColorPicker;
         onMounted(() => {
@@ -365,7 +437,8 @@
             image_ref.value,
             picker_ref.value,
             target_circle.value,
-            distance
+            color_range,
+            opacity,
           );
           
         })

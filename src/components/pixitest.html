@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Color Replacement with Pixi.js</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pixi.js/6.4.0/browser/pixi.min.js"></script>
+</head>
+<body>
+    <canvas id="myCanvas"></canvas>
+
+    <script>
+        // Initialize Pixi.js
+        const app = new PIXI.Application();
+        document.body.appendChild(app.view);
+
+        // Load the image
+        PIXI.Loader.shared.add('image', 'http://localhost:5173/images/picjam_-_red_sweater_23.png').load((loader, resources) => {
+            const imageTexture = resources.image.texture;
+            const imageSprite = new PIXI.Sprite(imageTexture);
+            app.stage.addChild(imageSprite);
+
+            // Replace specific color
+            const targetColor = [218, 2, 29]; // Original color [R, G, B]
+            const replacementColor = [215 / 255, 205 / 255, 193 / 255]; // New color [R (0-1), G (0-1), B (0-1)]
+            const tolerance = 70; // Adjust this value to control color matching tolerance
+
+            
+                let canvasElement=document.createElement("canvas");
+                let context=canvasElement.getContext("2d");
+
+                canvasElement.width=imageSprite.width;
+                canvasElement.height=imageSprite.height;
+
+                  context.drawImage(
+                    imageSprite,
+                    0,
+                    0,
+                    imageSprite.width,
+                    imageSprite.height
+                  );
+
+                 let imageData=context.getImageData(0 ,0 ,imageData.width,imageData.height);
+             
+
+             for (let i=0;i<imageData.data.length;i+=4){
+                 const r=imageData.data[i];
+                 const g=imageData.data[i+1];
+                 const b=imageData.data[i+2];
+
+                const rDiff = Math.abs(r - targetColor[0]);
+                const gDiff = Math.abs(g - targetColor[1]);
+                const bDiff = Math.abs(b - targetColor[2]);
+
+                const colorDifference = Math.sqrt(rDiff ** 2 + gDiff ** 2 + bDiff ** 2);
+
+                  if (colorDifference <= tolerance) {
+                        imageData.data[i] = replacementColor[0] * 255;
+                        imageData.data[i + 1] = replacementColor[1] * 255;
+                        imageData.data[i + 2] = replacementColor[2] * 255;
+                    }
+            }
+
+              context.putImageData(imageData,0,0);
+        
+               let newTexture=PIXI.Texture.from(canvasElement);
+               let newSprite=new PIXI.Sprite(newTexture);
+
+             // Add the new sprite to the stage
+            app.stage.addChild(newSprite);
+
+            // Render the modified image
+            app.render();
+        });
+    </script>
+</body>
+</html>
