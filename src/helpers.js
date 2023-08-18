@@ -48,6 +48,16 @@ export function loadImage(image, src) {
       }
       img.src = src
     })
+}
+
+export function srcToFile(src, fileName, mimeType) {
+    return fetch(src)
+      .then(function (res) {
+        return res.arrayBuffer()
+      })
+      .then(function (buf) {
+        return new File([buf], fileName, { type: mimeType })
+      })
   }
   
 
@@ -143,8 +153,8 @@ export async function inpaint(
     )
   
     try {
-    //   const API_URL = 'http://192.168.100.11:8181'
-      const API_URL = 'http://localhost:8181'
+      const API_URL = 'http://192.168.100.11:8181'
+      // const API_URL = 'http://localhost:8181'
       const res = await fetch(`${API_URL}/inpaint`, {
         method: 'POST',
         body: fd,

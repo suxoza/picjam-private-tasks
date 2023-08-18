@@ -107,7 +107,7 @@
     "sdSteps": 50,
     "sdGuidanceScale": 7.5,
     "sdSampler": "uni_pc",
-    "sdSeed": 42,
+    "sdSeed": 12,
     "sdSeedFixed": false,
     "sdNumSamples": 1,
     "sdMatchHistograms": false,

@@ -3,17 +3,14 @@
     <div class="relative w-1/2 flex items-center justify-start">
       <img
         ref="image_ref"
-        style="display: none; width:300px"
+        style="display: none"
         src="http://localhost:5173/images/picjam_-_red_sweater_23.png"
         alt=""
         @load="onImageLoad"
       />
       <canvas
-        width="700"
-        height="500"
         ref="canvas_ref"
         @mousedown="onMouseDown"
-        @mousemove="onMouseMove"
       ></canvas>
     </div>
     <div class="my-5 bg-gray-100 p-5 rounded-xl">
@@ -63,7 +60,6 @@ const onImageLoad = () => {
       ctx.clearRect(0, 0, canvas.width, canvas.height);
       ctx.drawImage(image, 0, 0, image.width, image.height);
 
-      // Draw existing paths and the current mouse position with transparency
       ctx.fillStyle = 'rgba(255, 204, 0, 0.07)';
       for (const point of drawingPoints) {
         ctx.beginPath();

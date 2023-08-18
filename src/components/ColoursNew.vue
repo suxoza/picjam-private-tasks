@@ -32,14 +32,16 @@
           <!-- <img ref="image_ref" style="display: none; width: 200px;" src="http://localhost:5173/canvas_image.jpg" alt=""> -->
           <!-- <img ref="image_ref" style="display: none; width: 200px;" src="http://localhost:5173/woman.png" alt=""> -->
           <!-- <img ref="image_ref" style="display: none; width: 200px;" src="http://localhost:5173/images/image1232.png" alt=""> -->
-          <!-- <img ref="image_ref" style="display: none; width: 200px;" src="http://localhost:5173/images/picjam_-_green_turtleneck_sweater_47.png" alt=""> -->
-          <img ref="image_ref" style="display: none; width: 200px;" src="http://localhost:5173/images/picjam_-_red_sweater_23.png" alt=""/>
+          <img ref="image_ref" style="display: none; width: 200px;" src="http://localhost:5173/images/picjam_-_green_turtleneck_sweater_47.png" alt="">
+          <!-- <img ref="image_ref" style="display: none; width: 200px;" src="http://localhost:5173/images/picjam_-_red_sweater_23.png" alt=""/> -->
           <canvas style="cursor: none;" ref="canvas_ref"></canvas>
         </div>
       </div>
   
-      <div class="w-full flex items-center justify-end mt-2">
-        <canvas width="700" height="700" class="w-9/12 h-full"  id="canvas_2"></canvas>
+      <div class="w-full flex items-center justify-around mt-2 ml-24">
+        <canvas width="700" height="700" class="w-[50%] h-full" id="canvas_0"></canvas>
+        <canvas width="700" height="700" class="w-[50%] h-full" id="canvas_1"></canvas>
+        <canvas width="700" height="700" class="w-[50%] h-full" id="canvas_2"></canvas>
       </div>
 </template>
 
@@ -54,7 +56,17 @@
 
 <script setup>
 
-    
+    import {
+      hsvColorDistance,
+      rgbToHsl,
+      rgb2hsv0,
+      rgb2hsv1,
+      rgb2hsv2,
+      toRgb,
+      toRgb2,
+      rgbaToRgb,
+      hslToRgb
+    } from '../colourHelpers'
     
     const ACTIONS = {
         IS_NOT_SELECTED: 1,
@@ -116,11 +128,10 @@
                 }
               },
         }).on('hide', instance => {
-          instance.show()
+          // instance.show()
         }).on('change', debounce((color, source, instance) => {
-          this.targeted_circle().style.backgroundColor = this.rgbaToRgb(color.toRGBA().toString())
-          const selectedColor = this.rgbaToRgb(color.toRGBA().toString())
-          this.set_action(selectedColor)
+          this.targeted_circle().style.backgroundColor = rgbaToRgb(color.toRGBA().toString())
+          this.set_action(color)
         }, 100)).on('swatchselect', (color) => {
           console.log('swatch select had been changed...', color)
         });
@@ -136,7 +147,7 @@
         this.imgData = null
 
         this.circle = {
-            radius: 20, 
+            radius: 10, 
             zoomFactor: 2,
         };
         
@@ -155,7 +166,7 @@
 
         this.canvas.addEventListener("mousemove", (e) => {
           if([ACTIONS.IS_NOT_SELECTED].includes(status.value))return
-          const { thisRGB, thisRGBRy } = this.get_colors(e)
+          const { thisRGB, thisRGBRy, hsv } = this.get_colors(e)
 
           this.targeted_circle().style.backgroundColor = thisRGB;
 
@@ -164,8 +175,8 @@
 
         this.canvas.addEventListener('click', (e) => {
 
-          const { thisRGB, thisRGBRy } = this.get_colors(e)
-          console.log('colors: ', thisRGB, thisRGBRy)
+          const { thisRGB, thisRGBRy, hsv } = this.get_colors(e)
+          console.log('colors: ', hsv)
           
           this.targeted_circle().style.backgroundColor = thisRGB;
 
@@ -173,7 +184,7 @@
           this.picker.setColor(thisRGB)
           this.picker.show()
 
-          this.set_action(thisRGB)
+          this.set_action(hsv)
         })
       }
 
@@ -194,19 +205,25 @@
           this.selected_color = color
         }else if(status.value == ACTIONS.TARGET_IS_ENABLED){
           this.destiny_color = color
+          console.log('colors =1 ')
+          console.log(this.selected_color)
+          console.log(color)
           this.replaceColor(this.selected_color, color)
         }
       }
 
       reset(){
         this.load_image((img, image) => {
-            const canvas_2 = document.getElementById('canvas_2')
-            const ctx = canvas_2.getContext("2d");
-            const ch = this.canvas.height = this.imgW * img.height / img.width;
+            for (let index = 0; index < 3; index++) {
+              const canvas_2 = document.getElementById(`canvas_${index}`)
+              const ctx = canvas_2.getContext("2d");
+              const ch = this.canvas.height = this.imgW * img.height / img.width;
+              ctx.drawImage(img, 0, 0, this.cw, ch);
+              const imgData = ctx.getImageData(0, 0, this.cw, ch);
+              ctx.putImageData(imgData, 0, 0);
+            }
+
             this.distance.value = 40
-            ctx.drawImage(img, 0, 0, this.cw, ch);
-            const imgData = ctx.getImageData(0, 0, this.cw, ch);
-            ctx.putImageData(imgData, 0, 0);
             this.destiny_color = null
         })
       }
@@ -217,29 +234,25 @@
         const R = this.pixels[i];
         const G = this.pixels[i + 1];
         const B = this.pixels[i + 2];
+        const hsv = rgbToHsl(R, G, B); // Convert RGB to HSV
         const thisRGBRy = [R, G, B];
-        const thisRGB = this.display_rgb(thisRGBRy);
+        const thisRGB = `rgb(${Math.round(R)},${Math.round(G)},${Math.round(B)})`;
         return {
-          thisRGBRy, 
-          thisRGB
-        }
+          thisRGBRy,
+          thisRGB,
+          hsv: hsv
+        };
       }
-      
+
       oMousePos(evt) {
         const ClientRect = this.canvas.getBoundingClientRect();
-        
         const result = {
           x: Math.round(evt.clientX - ClientRect.left),
           y: Math.round(evt.clientY - ClientRect.top)
         };
-
         this.circle.x = result.x;
-        this.circle.y = result.y
-        return result
-      }
-
-      display_rgb(ry) {
-        return `rgb(${Math.round(ry[0])},${Math.round(ry[1])},${Math.round(ry[2])})`;
+        this.circle.y = result.y;
+        return result;
       }
 
       animate(image) {
@@ -275,111 +288,61 @@
           requestAnimationFrame(this.animate.bind(this, image));
       }
 
-      parseRGB(rgbString) {
-        try {
-          
-          const match = rgbString.match(/\((\d+),\s*(\d+),\s*(\d+)\)/);
-  
-          if (match) {
-              const r = Number(match[1]);
-              const g = Number(match[2]);
-              const b = Number(match[3]);
-              
-              return { r, g, b }
-          } 
-        } catch (error) {
-          console.log('rgbString = ', rgbString)        
-        }
-        return rgbString
-      }
-
-      rgbToLab(rgb) {
-          const r = rgb.r / 255;
-          const g = rgb.g / 255;
-          const b = rgb.b / 255;
-
-          const x = 0.4124564 * r + 0.3575761 * g + 0.1804375 * b;
-          const y = 0.2126729 * r + 0.7151522 * g + 0.0721750 * b;
-          const z = 0.0193339 * r + 0.1191920 * g + 0.9503041 * b;
-
-          const epsilon = 0.008856; // CIE standards
-          const kappa = 903.3; // CIE standards
-
-          const xr = x / 0.95047; // reference white point
-          const yr = y / 1.0;
-          const zr = z / 1.08883;
-
-          const fx = xr > epsilon ? Math.pow(xr, 1/3) : (kappa * xr + 16) / 116;
-          const fy = yr > epsilon ? Math.pow(yr, 1/3) : (kappa * yr + 16) / 116;
-          const fz = zr > epsilon ? Math.pow(zr, 1/3) : (kappa * zr + 16) / 116;
-
-          const L = 116 * fy - 16;
-          const a = 500 * (fx - fy);
-          const d = 200 * (fy - fz);
-
-          return { L, a, b:d };
-        }
-
-
-      colorDistance(color1, color2) {
-          // const rDiff = color1.r - color2.r;
-          // const gDiff = color1.g - color2.g;
-          // const bDiff = color1.b - color2.b;
-          // const diff =  Math.sqrt((rDiff * rDiff) + (gDiff * gDiff) + (bDiff * bDiff));
-          // return diff
-          const deltaL = color1.L - color2.L;
-          const deltaA = color1.a - color2.a;
-          const deltaB = color1.b - color2.b;
-          return Math.sqrt(deltaL * deltaL + deltaA * deltaA + deltaB * deltaB)
-      }
-
-      rgbaToRgb(rgba) {
-        const rgbaComponents = rgba.substring(5, rgba.length - 1).split(',').map(Number);
-
-        const red = Math.round(rgbaComponents[0]);
-        const green = Math.round(rgbaComponents[1]);
-        const blue = Math.round(rgbaComponents[2]);
-
-        return `rgb(${red}, ${green}, ${blue})`;
-      }
-
       replaceColor(targetColorString, replacementColorString) {
-        
-          this.load_image((img, image) => {
-              const canvas_2 = document.getElementById('canvas_2')
-              const ctx = canvas_2.getContext("2d");
-              const ch = this.canvas.height = this.imgW * img.height / img.width;
-              ctx.drawImage(img, 0, 0, this.cw, ch);
-              const imgData = ctx.getImageData(0, 0, this.cw, ch);
-              
+          const oldHSV = targetColorString
+          const newColor = hslToRgb(replacementColorString)
 
-              const oldColor = this.parseRGB(targetColorString);
-              const newColor = this.parseRGB(replacementColorString)
+          const sleep = (interval = 1000) => new Promise(resolve => setTimeout(() => {
+            resolve()
+          }, interval))
 
-              
-              let iter = 0
-              for (let i = 0; i < imgData.data.length; i += 4) {
-                const pixelColor = {
-                  r: imgData.data[i],
-                  g: imgData.data[i + 1],
-                  b: imgData.data[i + 2]
-                };
-                const dist = this.colorDistance(this.rgbToLab(oldColor), this.rgbToLab(pixelColor));
-                if(iter < 30 && dist < this.distance.value){
-                  console.log(dist)
-                  console.log('---------')
-                  iter++
-                }
-                // if (pixelColor === oldColor) {
-                if (dist < this.distance.value) {
-                  // console.log(pixelColor+' -> '+newColor)
-                  imgData.data[i] = newColor.r;
-                  imgData.data[i + 1] = newColor.g;
-                  imgData.data[i + 2] = newColor.b;
-                }
+          this.load_image(async (img, image) => {
+
+              for (let index = 1; index < 2; index++) {
+
+                  const canvas_2 = document.getElementById(`canvas_${index}`)
+                  const ctx = canvas_2.getContext("2d");
+                  const ch = this.canvas.height = this.imgW * img.height / img.width;
+                  ctx.drawImage(img, 0, 0, this.cw, ch);
+                  const imgData = ctx.getImageData(0, 0, this.cw, ch);       
+                  
+                  let iter = 0
+                  let iter2 = 0
+                  for (let i = 0; i < imgData.data.length; i += 4) {
+                    const pixelColor = {
+                      r: imgData.data[i],
+                      g: imgData.data[i + 1],
+                      b: imgData.data[i + 2]
+                    };
+                    // const pixelHSV = rgb2hsv(pixelColor.r, pixelColor.g, pixelColor.b);
+                    // const pixelHSV = rgb2hsv2(pixelColor.r, pixelColor.g, pixelColor.b);
+                    const pixelHSV = eval(`rgb2hsv${index}`)(pixelColor.r, pixelColor.g, pixelColor.b);
+                    // if(iter2 < 10){
+                    //   console.log('*********************')
+                    //   console.log(pixelHSV)
+                    //   console.log(rgb2hsv2(pixelColor.r, pixelColor.g, pixelColor.b))
+                    //   iter2++
+                    // }
+
+                    const dist = hsvColorDistance(oldHSV, pixelHSV);
+                    // if(iter < 30 && dist < this.distance.value){
+                    //   console.log(dist)
+                    //   console.log('---------')
+                    //   iter++
+                    // }
+                    // if (pixelColor === oldColor) {
+                    if (dist < this.distance.value) {
+                      // console.log(pixelColor+' -> '+newColor)
+                      imgData.data[i] = newColor.r;
+                      imgData.data[i + 1] = newColor.g;
+                      imgData.data[i + 2] = newColor.b;
+                    }
+                  }
+
+                ctx.putImageData(imgData, 0, 0);
+                console.log('next one')
+                await sleep(300)
               }
-
-            ctx.putImageData(imgData, 0, 0);
           })
       }
 

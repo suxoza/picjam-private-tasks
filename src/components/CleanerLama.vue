@@ -1,40 +1,49 @@
 <template>
-  <div v-if="isProcessing" class="absolute w-full h-full bg-gray-300 opacity-75 inset-0 z-30 flex items-center justify-center">
+  <div v-if="isProcessing" class="fixed w-screen h-screen bg-gray-300 opacity-75 inset-0 z-30 flex items-center justify-center">
     <Loading />
   </div>
+
+  <!-- <img id="example_image" class="absolute inset-0 z-20 w-72" src="http://localhost:5173/images/woman.png" alt=""> -->
   <div class="flex justify-center pt-32 flex-col items-center gap-y-5">
-    {{  showBrush  }}
-    {{  isPainting  }}
-    {{  changeBrushSizeByMouseInit  }}
+    <div class="my-10">
+      {{  showBrush  }}
+      {{  isPainting  }}
+      {{  changeBrushSizeByMouseInit  }}
+    </div>
     
-    <div class="relative w-1/2 flex items-center justify-center" style="height: 30rem;">
+    <div class="w-1/2 flex items-center justify-center">
 
 
-      <div class="w-full h-full flex items-center justify-center">
+      <div class="flex items-center justify-center relative">
         <img
           ref="image_ref"
           src="http://localhost:5173/images/picjam_-_red_sweater_23.png"
           alt=""
-          width="512"
-          height="512"
-          style="display: none;"
+          class="hidden"
           @load="onImageLoad"
         />
+        <!-- <img
+          ref="image_ref"
+          src="http://localhost:5173/images/woman.png"
+          alt=""
+          class="hidden"
+          @load="onImageLoad"
+        /> -->
         <canvas
-          width="512"
           ref="canvas_ref"
-          class="absolute top-0"
-          style="transition: clip-path 300ms cubic-bezier(0.4, 0, 0.2, 1); inset(0 30% 0 0); cursor: none;"
+          style="clipPath: inset(0 0% 0 0); transition: clip-path 300ms cubic-bezier(0.4, 0, 0.2, 1)"
           @mousedown="onMouseDown"
           @mouseup="onMouseUp"
           @mousemove="onMouseMove"
           @mouseover="showBrush = true"
           @focus="showBrush = true"
           @mouseleave="onMouseleave"
-        ></canvas>
+        >
+      
+      </canvas>
 
         <div v-if="showBrush && !isProcessing"
-            class="brush-shape "
+            class="brush-shape"
             :style="dynamicStyles"
           >
         </div>
@@ -58,7 +67,13 @@
 <script setup>
 import Loading from './loading.vue'
 import settings from '../settings.json'
-import { getImageFileFromUrl, ImageColorPicker, inpaint, loadImage } from '../helpers'
+import { 
+  getImageFileFromUrl, 
+  ImageColorPicker, 
+  inpaint, 
+  loadImage, 
+  srcToFile 
+} from '../helpers'
 
 
 import { ref, computed } from 'vue';
@@ -70,6 +85,8 @@ const showBrush = ref(false)
 const isPainting = ref(false)
 const isProcessing = ref(false)
 const BRUSH_COLOR = '#ffcc00bb'
+const maskCanvas = ref(document.createElement('canvas'))
+const renders = []
 
 let drawingPoints = [];
 
@@ -83,37 +100,45 @@ const onImageLoad = () => {
   imageColorPicker = new ImageColorPicker(canvas, image);
 }
 
+const drawOnMask = (lines) => {
+  maskCanvas.value.width = canvas.width
+  maskCanvas.value.height = canvas.height
+  const ctx = maskCanvas.value.getContext('2d')
+  drawLines(ctx, lines, 'white')
+}
 
 function drawLines(ctx, lines, color = BRUSH_COLOR) {
-  ctx.clearRect(0, 0, canvas.width, canvas.height)
-  ctx.drawImage(image, 0, 0, image.width, image.height)
-  ctx.fillStyle = 'rgba(255, 204, 0, 0.01)';
-  ctx.strokeStyle = color
+  // ctx.strokeStyle = color
+  // ctx.strokeStyle = 'yellow'
   ctx.lineCap = 'round'
   ctx.lineJoin = 'round'
-
+  
+  ctx.globalAlpha = 0.7;
+  ctx.strokeStyle = 'rgba(255, 255, 0, 0.009)';
   lines.forEach(line => {
     if (!line?.pts.length) {
       return
     }
-    ctx.lineWidth = Number(circle_size.value || 50) + 50
+    ctx.lineWidth = Number(circle_size.value || 50) + 30
     ctx.beginPath()
     ctx.moveTo(line.pts[0].x, line.pts[0].y)
     line.pts.forEach(pt => ctx.lineTo(pt.x, pt.y))
     ctx.stroke()
   })
+  ctx.fill();
+  ctx.closePath();
+  ctx.globalAlpha = 1;
 }
 
 function mouseXY(evt) {
   return { x: evt.offsetX, y: evt.offsetY };
 }
 
-const circle_size = ref(null)
+const circle_size = ref(70)
 const changeBrushSizeByMouseInit = ref({
     x: -1,
     y: -1,
 })
-
 
 const onMouseMove = (evt) => {
   const pos = mouseXY(evt)
@@ -126,11 +151,12 @@ const onMouseMove = (evt) => {
       imageColorPicker.ctx,
       drawingPoints,
     )
+    drawOnMask(drawingPoints)
   }
 }
 
 const dynamicStyles = computed(() => {
-  const brushSize = Number(circle_size.value || 50) + 50
+  const brushSize = Number(circle_size.value || 70) + 30
   return {
     left:  changeBrushSizeByMouseInit.value.x+'px',
     top:  changeBrushSizeByMouseInit.value.y+'px',
@@ -140,22 +166,39 @@ const dynamicStyles = computed(() => {
 })
 
 const onMouseleave = (evt) => {
+  
   showBrush.value = false
   isPainting.value = false
+
 }
 
-const onMouseDown = (evt) => {
+const onMouseDown = () => {
   isPainting.value = true
   console.log('mouseDown')
   console.log(drawingPoints)
 }
 
-const onMouseUp = async (evt) => {
+const onMouseUp = async () => {
   isPainting.value = false
   console.log('mouseUp')
   const imageUrl  = image_ref.value.src
-  const file = await getImageFileFromUrl(imageUrl)
-  const croperRect = {x: 194, y: 194, width: 512, height: 512}
+  let file = await getImageFileFromUrl(imageUrl)
+  if(renders.length){
+    const lastRender = renders[renders.length - 1]
+    file = await srcToFile(
+      lastRender.currentSrc,
+      file.name,
+      file.type
+    )
+  }
+  
+  // const croperRect = {x: 194, y: 194, width: 512, height: 512}
+  const croperRect = {
+    x: 12,
+    y: 103,
+    width: 512,
+    height: 512,
+  }
   const promptVal = ""
   const negativePromptVal = ""
   const seedVal = -1
@@ -163,9 +206,24 @@ const onMouseUp = async (evt) => {
   const paintByExampleImage = ""
   console.log('settings = ')
   console.log(settings.hdSettings[settings.model])
-
+  console.log(file)
+  // console.log(maskCanvas.value.toDataURL())
+  // return
 
   isProcessing.value = true
+  console.log(renders)
+  console.log({
+      a: file,
+      a2: settings,
+      a3: croperRect,
+      a4: promptVal,
+      a5: negativePromptVal,
+      a6: seedVal,
+      a7: maskCanvas.value.toDataURL(),
+      a8: useCustomMask,
+      a9: paintByExampleImage,
+    })
+  showBrush.value = false  
   const res = await inpaint(
     file, // targetFile,
     settings, // settings,
@@ -173,7 +231,7 @@ const onMouseUp = async (evt) => {
     promptVal,
     negativePromptVal,
     seedVal,
-    canvas.toDataURL(),// useCustomMask ? undefined : maskCanvas.toDataURL(),
+    maskCanvas.value.toDataURL(),// useCustomMask ? undefined : maskCanvas.toDataURL(),
     useCustomMask,// useCustomMask ? customMask : undefined,
     paintByExampleImage, // paintByExampleImage
   )
@@ -186,13 +244,12 @@ const onMouseUp = async (evt) => {
   const newRender = new Image()
   await loadImage(newRender, blob)
 
+  renders.push(newRender)
 
   new ImageColorPicker(canvas, newRender)
   drawingPoints = []
 
 }
-
-
 </script>
 
 
