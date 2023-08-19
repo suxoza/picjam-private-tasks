@@ -11,6 +11,8 @@
   "dependencies": {
     "@simonwep/pickr": "^1.8.2",
     "lodash.debounce": "^4.0.8",
+    "pixi-filters": "^5.2.1",
+    "pixi.js": "^7.2.4",
     "vue": "^3.3.4"
   },
   "devDependencies": {
