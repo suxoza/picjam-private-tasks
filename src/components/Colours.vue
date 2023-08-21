@@ -136,7 +136,7 @@
         this.imgData = null
 
         this.circle = {
-            radius: 20, 
+            radius: 10, 
             zoomFactor: 2,
         };
         
@@ -242,7 +242,7 @@
         return `rgb(${Math.round(ry[0])},${Math.round(ry[1])},${Math.round(ry[2])})`;
       }
 
-      animate(image) {
+      animate(image) { 
           this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
 
           const { x, y, radius, zoomFactor } = this.circle;

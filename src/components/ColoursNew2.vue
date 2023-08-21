@@ -8,7 +8,9 @@
               <div @click="setActive('filter_4')" :class="[active_item == 'filter_4'?'text-red-500':'text-green-900']" class="text-green-900 hover:text-blue-800 underline italic cursor-pointer">Custom Filter</div>
               <div @click="setActive('filter_5')" :class="[active_item == 'filter_5'?'text-red-500':'text-green-900']" class="text-green-900 hover:text-blue-800 underline italic cursor-pointer">Custom Filter-2</div>
               <div @click="setActive('filter_6')" :class="[active_item == 'filter_6'?'text-red-500':'text-green-900']" class="text-green-900 hover:text-blue-800 underline italic cursor-pointer">Custom Filter-3</div>
-              <div @click="setActive('filter_7')" :class="[active_item == 'filter_7'?'text-red-500':'text-green-900']" class="text-green-900 hover:text-blue-800 underline italic cursor-pointer">Custom Filter-7</div>
+              <div @click="setActive('filter_7')" :class="[active_item == 'filter_7'?'text-red-500':'text-green-900']" class="text-green-900 hover:text-blue-800 underline italic cursor-pointer">Custom Filter-4</div>
+              <div @click="setActive('filter_8')" :class="[active_item == 'filter_8'?'text-red-500':'text-green-900']" class="text-green-900 hover:text-blue-800 underline italic cursor-pointer">Custom Filter-5</div>
+              <div @click="setActive('filter_9')" :class="[active_item == 'filter_8'?'text-red-500':'text-green-900']" class="text-green-900 hover:text-blue-800 underline italic cursor-pointer">Custom Filter-9</div>
             </div>
         </div>
 
@@ -19,6 +21,12 @@
           <div v-show="active_item == 'filter_5'" class="bg-red-300 flex items-center justify-center" id="container_here5"></div>
           <div v-show="active_item == 'filter_6'" class="bg-red-300 flex items-center justify-center" id="container_here6"></div>
           <div v-show="active_item == 'filter_7'" class="bg-red-300 flex items-center justify-center" id="container_here7"></div>
+          <div v-show="active_item == 'filter_8'" class="bg-red-300 flex items-center justify-center" id="container_here8"></div>
+          <div v-show="active_item == 'filter_9'" class="bg-red-300 flex items-center justify-center">
+            something here
+            <div id="container_here8"></div>
+          </div>
+
         
       </div>
 </template>
@@ -67,7 +75,7 @@
   
     const colorReplaceFilter = new ColorReplaceFilter()
     colorReplaceFilter.originalColor = [244/255.0, 12/255.0, 40/255.0]; //rgba(244, 12, 40, 1)
-    colorReplaceFilter.newColor = [31/255.0, 92/255.0, 213/255.0]; // rgba(31, 92, 213, 1)
+    colorReplaceFilter.newColor = [31/255.0, 92/255.0, 213/255.0]; 
     colorReplaceFilter.epsilon = 0.3
     container.filters = [colorReplaceFilter];
     app.stage.addChild(container);
@@ -88,8 +96,8 @@
         toned: .1, 
         lightColor: "#FFFFFF",
         darkColor: "#000000"
-        // lightColor: [244/255.0, 12/255.0, 40/255.0],
-        // darkColor: [31/255.0, 92/255.0, 213/255.0]
+        
+        
     }
     colorMatrix.colorTone([
       params.desaturation, 
@@ -98,7 +106,7 @@
       params.darkColor
     ])
 
-    colorMatrix.brightness(3.5); // 1.5 times brighter
+    colorMatrix.brightness(3.5); 
     
   
     const bg = PIXI.Sprite.from('http://localhost:5173/images/picjam_-_red_sweater_23.png');
@@ -115,11 +123,11 @@
     const container = new PIXI.Container();
     const bg = PIXI.Sprite.from('http://localhost:5173/images/picjam_-_red_sweater_23.png');
 
-    // Define the target and new colors
-    const targetColor = new Float32Array([235 / 255, 10 / 255, 37 / 255]); // rgba(235, 10, 37, 1)
+    
+    const targetColor = new Float32Array([235 / 255, 10 / 255, 37 / 255]); 
     const newColor = new Float32Array([31 / 255, 92 / 255, 213 / 255]);
 
-    // Create a custom shader for color replacement
+    
     const customShader = new PIXI.Filter(null, `
         precision mediump float;
         varying vec2 vTextureCoord;
@@ -128,13 +136,13 @@
         uniform vec3 newColor;
 
         vec3 RGB2Lab(vec3 rgbColor) {
-            // convert sRGB to XYZ
+            
             vec3 xyzColor;
             xyzColor.x = (rgbColor.r > 0.04045 ? pow((rgbColor.r + 0.055) / 1.055, 2.4) : rgbColor.r / 12.92) * 100.0;
             xyzColor.y = (rgbColor.g > 0.04045 ? pow((rgbColor.g + 0.055) / 1.055, 2.4) : rgbColor.g / 12.92) * 100.0;
             xyzColor.z = (rgbColor.b > 0.04045 ? pow((rgbColor.b + 0.055) / 1.055, 2.4) : rgbColor.b / 12.92) * 100.0;
 
-            // convert XYZ to Lab
+            
             vec3 labColor;
             xyzColor /= vec3(95.047, 100.000, 108.883);
             xyzColor = vec3(xyzColor.x > 0.008856 ? pow(xyzColor.x, 1.0/3.0) : (7.787 * xyzColor.x) + (16.0/116.0),
@@ -149,20 +157,20 @@
         }
 
         void main(void) {
-            // Sample the texture
+            
             vec4 color = texture2D(uSampler, vTextureCoord);
 
-            // Convert colors to Lab color space
+            
             vec3 labColor = RGB2Lab(color.rgb);
             vec3 labTargetColor = RGB2Lab(targetColor);
 
-            // Calculate the Euclidean distance between the colors in Lab color space
+            
             float colorDistance = distance(labColor, labTargetColor);
 
-            // Define a threshold for color similarity
-            float colorThreshold = 213.0; // Adjust this value for accuracy
+            
+            float colorThreshold = 213.0; 
 
-            // Check if the color is similar enough to the targetColor
+            
             if (colorDistance < colorThreshold) {
                 color.rgb = newColor;
             }
@@ -174,7 +182,7 @@
         newColor: newColor
     });
 
-    // Set the filter on the container
+    
     container.filters = [customShader];
 
     container.addChild(bg);
@@ -190,11 +198,11 @@
     const container = new PIXI.Container();
     const bg = PIXI.Sprite.from('http://localhost:5173/images/picjam_-_red_sweater_23.png');
 
-    // Define the target and new colors
-    const targetColor = new Float32Array([235 / 255, 10 / 255, 37 / 255]); // rgba(235, 10, 37, 1)
+    
+    const targetColor = new Float32Array([235 / 255, 10 / 255, 37 / 255]); 
     const newColor = new Float32Array([31 / 255, 92 / 255, 213 / 255]);
 
-    // Create a custom shader for color replacement
+    
     const customShader = new PIXI.Filter(null, `
         precision mediump float;
         varying vec2 vTextureCoord;
@@ -203,13 +211,13 @@
         uniform vec3 newColor;
 
         vec3 RGB2Lab(vec3 rgbColor) {
-            // convert sRGB to XYZ
+            
             vec3 xyzColor;
             xyzColor.x = (rgbColor.r > 0.04045 ? pow((rgbColor.r + 0.055) / 1.055, 2.4) : rgbColor.r / 12.92) * 100.0;
             xyzColor.y = (rgbColor.g > 0.04045 ? pow((rgbColor.g + 0.055) / 1.055, 2.4) : rgbColor.g / 12.92) * 100.0;
             xyzColor.z = (rgbColor.b > 0.04045 ? pow((rgbColor.b + 0.055) / 1.055, 2.4) : rgbColor.b / 12.92) * 100.0;
 
-            // convert XYZ to Lab
+            
             vec3 labColor;
             xyzColor /= vec3(95.047, 100.000, 108.883);
             xyzColor = vec3(xyzColor.x > 0.008856 ? pow(xyzColor.x, 1.0/3.0) : (7.787 * xyzColor.x) + (16.0/116.0),
@@ -224,20 +232,20 @@
         }
 
         void main(void) {
-            // Sample the texture
+            
             vec4 color = texture2D(uSampler, vTextureCoord);
 
-            // Convert colors to Lab color space
+            
             vec3 labColor = RGB2Lab(color.rgb);
             vec3 labTargetColor = RGB2Lab(targetColor);
 
-            // Calculate the Euclidean distance between the colors in Lab color space
+            
             float colorDistance = distance(labColor, labTargetColor);
 
-            // Define a threshold for color similarity
-            float colorThreshold = 210.0; // Adjust this value for accuracy
+            
+            float colorThreshold = 210.0; 
 
-            // Check if the color is similar enough to the targetColor
+            
             if (colorDistance < colorThreshold) {
                 color.rgb = newColor;
             }
@@ -251,17 +259,17 @@
 
     const colorReplaceFilter = new ColorReplaceFilter()
     colorReplaceFilter.originalColor = [244/255.0, 12/255.0, 40/255.0]; //rgba(244, 12, 40, 1)
-    colorReplaceFilter.newColor = [31/255.0, 92/255.0, 213/255.0]; // rgba(31, 92, 213, 1)
+    colorReplaceFilter.newColor = [31/255.0, 92/255.0, 213/255.0]; 
     colorReplaceFilter.epsilon = 0.359
 
     const gradientFilter = new ColorGradientFilter()
 
     gradientFilter.alpha = 0.82
 
-    // Set the filter on the container
+    
     container.filters = [gradientFilter, colorReplaceFilter, customShader];
 
-    // Set the filter on the container
+    
     container.filters = [colorReplaceFilter, customShader];
 
     container.addChild(bg);
@@ -277,17 +285,17 @@
 
     const firstC = [48/255.0, 106/255.0, 192/255.0]
 
-    // 207/255.0, 134/255.0, 104/255.0
+    
     const secondC = [255 / 255, 0 / 255, 93 / 255]
 
     const container = new PIXI.Container();
     const bg = PIXI.Sprite.from('http://localhost:5173/images/image1232.png');
 
-    // Define the target and new colors
-    const targetColor = new Float32Array(firstC); // rgba(235, 10, 37, 1)
+    
+    const targetColor = new Float32Array(firstC); 
     const newColor = new Float32Array(secondC);
 
-    // Create a custom shader for color replacement
+    
     const customShader = new PIXI.Filter(null, `
         precision mediump float;
         varying vec2 vTextureCoord;
@@ -296,13 +304,13 @@
         uniform vec3 newColor;
 
         vec3 RGB2Lab(vec3 rgbColor) {
-            // convert sRGB to XYZ
+            
             vec3 xyzColor;
             xyzColor.x = (rgbColor.r > 0.04045 ? pow((rgbColor.r + 0.055) / 1.055, 2.4) : rgbColor.r / 12.92) * 100.0;
             xyzColor.y = (rgbColor.g > 0.04045 ? pow((rgbColor.g + 0.055) / 1.055, 2.4) : rgbColor.g / 12.92) * 100.0;
             xyzColor.z = (rgbColor.b > 0.04045 ? pow((rgbColor.b + 0.055) / 1.055, 2.4) : rgbColor.b / 12.92) * 100.0;
 
-            // convert XYZ to Lab
+            
             vec3 labColor;
             xyzColor /= vec3(95.047, 100.000, 108.883);
             xyzColor = vec3(xyzColor.x > 0.008856 ? pow(xyzColor.x, 1.0/3.0) : (7.787 * xyzColor.x) + (16.0/116.0),
@@ -317,20 +325,20 @@
         }
 
         void main(void) {
-            // Sample the texture
+            
             vec4 color = texture2D(uSampler, vTextureCoord);
 
-            // Convert colors to Lab color space
+            
             vec3 labColor = RGB2Lab(color.rgb);
             vec3 labTargetColor = RGB2Lab(targetColor);
 
-            // Calculate the Euclidean distance between the colors in Lab color space
+            
             float colorDistance = distance(labColor, labTargetColor);
 
-            // Define a threshold for color similarity
-            float colorThreshold = 90.0; // Adjust this value for accuracy
+            
+            float colorThreshold = 90.0; 
 
-            // Check if the color is similar enough to the targetColor
+            
             if (colorDistance < colorThreshold) {
                 color.rgb = newColor;
             }
@@ -344,17 +352,17 @@
 
     const colorReplaceFilter = new ColorReplaceFilter()
     colorReplaceFilter.originalColor = firstC; ; //rgba(244, 12, 40, 1)
-    colorReplaceFilter.newColor = secondC; ; // rgba(31, 92, 213, 1)
+    colorReplaceFilter.newColor = secondC; ; 
     colorReplaceFilter.epsilon = 0.259
 
 
-    // Define a custom color map (source RGB -> target RGB)
+    
     const colorMap = {
-        [0x306AC0]: [48/255.0, 106/255.0, 192/255.0],   // Map the source color to [48/255, 106/255, 192/255]
-        [0xFF005D]: [255/255.0, 0/255.0, 93/255.0]       // Map the source color to [255/255, 0/255, 93/255]
+        [0x306AC0]: [48/255.0, 106/255.0, 192/255.0],   
+        [0xFF005D]: [255/255.0, 0/255.0, 93/255.0]       
     };
 
-    // Create a custom filter for color mapping
+    
     const colorMapFilter = new PIXI.Filter(null, `
         precision mediump float;
         varying vec2 vTextureCoord;
@@ -363,14 +371,14 @@
         void main(void) {
             vec4 color = texture2D(uSampler, vTextureCoord);
 
-            // Convert the color to integer (discard alpha channel)
+            
             vec3 intColor = floor(color.rgb * 255.0 + 0.5);
             int sourceColor = int(intColor.r * 256.0 * 256.0 + intColor.g * 256.0 + intColor.b);
 
-            // Map the color using the custom color map
+            
             vec3 mappedColor = colorMap[sourceColor] / 255.0;
 
-            // Apply the mapped color
+            
             color.rgb = mappedColor;
 
             gl_FragColor = color;
@@ -379,7 +387,7 @@
         colorMap: colorMap
     });
 
-    // Set the filter on the container
+    
     container.filters = [colorReplaceFilter, customShader];
 
     container.addChild(bg);
@@ -393,19 +401,19 @@
     app.stage.eventMode = 'static';
     
 
-    const firstC = [48/255.0, 106/255.0, 192/255.0]
+    const firstC = [30/255.0, 68/255.0, 133/255.0] // rgba(30, 68, 133, 1)
 
-    // 207/255.0, 134/255.0, 104/255.0
-    const secondC = [255 / 255, 0 / 255, 93 / 255]
+    
+    const secondC = [67 / 255, 148 / 255, 223 / 255] // rgba(67, 148, 223, 1)
 
     const container = new PIXI.Container();
     const bg = PIXI.Sprite.from('http://localhost:5173/images/image1232.png');
 
-    // Define the target and new colors
-    const targetColor = new Float32Array(firstC); // rgba(235, 10, 37, 1)
+    
+    const targetColor = new Float32Array(firstC); 
     const newColor = new Float32Array(secondC);
 
-    // Create a custom shader for color replacement
+    
     const customShader = new PIXI.Filter(null, `
         precision mediump float;
         varying vec2 vTextureCoord;
@@ -413,17 +421,14 @@
         uniform vec3 targetColor;
         uniform vec3 newColor;
 
-        vec3 RGB2Lab(vec3 rgbColor) {
-            // convert sRGB to XYZ
+        vec3 RGB2Lab(vec3 rgbColor) {  
             vec3 xyzColor;
             xyzColor.x = (rgbColor.r > 0.04045 ? pow((rgbColor.r + 0.055) / 1.055, 2.4) : rgbColor.r / 12.92) * 100.0;
             xyzColor.y = (rgbColor.g > 0.04045 ? pow((rgbColor.g + 0.055) / 1.055, 2.4) : rgbColor.g / 12.92) * 100.0;
             xyzColor.z = (rgbColor.b > 0.04045 ? pow((rgbColor.b + 0.055) / 1.055, 2.4) : rgbColor.b / 12.92) * 100.0;
 
-            // convert XYZ to Lab
             vec3 labColor;
-            xyzColor /= vec3(95.047, 100.000, 108.883);
-            xyzColor = vec3(xyzColor.x > 0.008856 ? pow(xyzColor.x, 1.0/3.0) : (7.787 * xyzColor.x) + (16.0/116.0),
+            xyzColor /= ve3(xyzColor.x > 0.008856 ? pow(xyzColor.x, 1.0/3.0) : (7.787 * xyzColor.x) + (16.0/116.0),
                             xyzColor.y > 0.008856 ? pow(xyzColor.y, 1.0/3.0) : (7.787 * xyzColor.y) + (16.0/116.0),
                             xyzColor.z > 0.008856 ? pow(xyzColor.z, 1.0/3.0) : (7.787 * xyzColor.z) + (16.0/116.0));
 
@@ -435,20 +440,16 @@
         }
 
         void main(void) {
-            // Sample the texture
+            
             vec4 color = texture2D(uSampler, vTextureCoord);
 
-            // Convert colors to Lab color space
+            
             vec3 labColor = RGB2Lab(color.rgb);
             vec3 labTargetColor = RGB2Lab(targetColor);
-
-            // Calculate the Euclidean distance between the colors in Lab color space
             float colorDistance = distance(labColor, labTargetColor);
 
-            // Define a threshold for color similarity
-            float colorThreshold = 90.0; // Adjust this value for accuracy
+            float colorThreshold = 90.0; 
 
-            // Check if the color is similar enough to the targetColor
             if (colorDistance < colorThreshold) {
                 color.rgb = newColor;
             }
@@ -462,19 +463,80 @@
 
     const colorReplaceFilter = new ColorReplaceFilter()
     colorReplaceFilter.originalColor = firstC; ; //rgba(244, 12, 40, 1)
-    colorReplaceFilter.newColor = secondC; ; // rgba(31, 92, 213, 1)
-    colorReplaceFilter.epsilon = 0.259
+    colorReplaceFilter.newColor = secondC; ; 
+    colorReplaceFilter.epsilon = 0.212
 
     const gradientFilter = new ColorGradientFilter()
-    gradientFilter.alpha = 0.12
+    gradientFilter.alpha = 0.32
 
     const bloomFilter = new BloomFilter()
 
     bloomFilter.blur = 0.20
-    bloomFilter.kernelSize = 11
+    bloomFilter.kernelSize = 31
 
-    // Set the filter on the container
-    container.filters = [gradientFilter, colorReplaceFilter, customShader, bloomFilter];
+    
+    // container.filters = [gradientFilter, colorReplaceFilter, customShader, bloomFilter];
+    container.filters = [colorReplaceFilter];
+
+    container.addChild(bg);
+    app.stage.addChild(container);
+
+  }
+
+  import { ColorReplaceFilterUpd } from '../libs/customFilters'
+  const custom_filter5 = () => {
+    const app = new PIXI.Application({ resizeTo: window });
+    document.getElementById('container_here8').appendChild(app.view);
+    app.stage.eventMode = 'static';
+    
+
+    const firstC = [30/255.0, 68/255.0, 133/255.0] // rgba(30, 68, 133, 1)
+    const secondC = [67 / 255, 148 / 255, 223 / 255] // rgba(67, 148, 223, 1)
+
+    const container = new PIXI.Container();
+    const bg = PIXI.Sprite.from('http://localhost:5173/images/image1232.png');
+
+    
+    const targetColor = new Float32Array(firstC); 
+    const newColor = new Float32Array(secondC);
+
+
+    const colorReplaceFilter = new ColorReplaceFilter()
+    colorReplaceFilter.originalColor = firstC; ; //rgba(244, 12, 40, 1)
+    colorReplaceFilter.newColor = secondC; ; 
+    colorReplaceFilter.epsilon = 0.212
+
+    const newFilter = new ColorReplaceFilterUpd({
+      originalColor: '#2D68BE',
+      newColor: '#193A7A',
+      targetAlpha: 1,
+      epsilon: 0.4
+    });
+
+    container.filters = [newFilter];
+
+    container.addChild(bg);
+    app.stage.addChild(container);
+
+  }
+
+
+  const custom_filter6 = () => {
+    const app = new PIXI.Application({ resizeTo: window });
+    document.getElementById('container_here8').appendChild(app.view);
+    app.stage.eventMode = 'static';
+    
+    const container = new PIXI.Container();
+    const bg = PIXI.Sprite.from('http://localhost:5173/images/image1232.png');
+
+    const newFilter = new ColorReplaceFilterUpd({
+      originalColor: '#2D68BE',
+      newColor: '#193A7A',
+      targetAlpha: 1,
+      epsilon: 0.4
+    });
+
+    container.filters = [newFilter];
 
     container.addChild(bg);
     app.stage.addChild(container);
@@ -490,6 +552,8 @@
     custom_filter2()
     custom_filter3()
     custom_filter4()
+    custom_filter5()
+    custom_filter6()
   })
     
   </script>
